@@ -1,0 +1,12 @@
+---
+# vars file for tomcat-role
+
+
+tomcat_major_version: 9
+tomcat_version: 9.0.111
+tomcat_user: tomcat
+tomcat_group: tomcat
+tomcat_install_dir: /opt/tomcat
+tomcat_download_url: "https://downloads.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+java_package: default-jdk
+java_home: /usr/lib/jvm/java-11-openjdk-amd64   #in ubuntu 22.04, default-jdk is java-11

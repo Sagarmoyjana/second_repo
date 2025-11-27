@@ -1,0 +1,10 @@
+---
+# handlers file for maven-role
+
+- name: set maven symlink
+  file:
+    src: "{{ maven_extract_dir }}"
+    dest: "{{ maven_symlink_dir }}"
+    state: link
+    force: yes
+

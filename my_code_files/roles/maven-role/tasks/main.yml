@@ -1,0 +1,54 @@
+---
+# tasks file for maven-role
+
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
+- name: Install Java JDK (default)
+  apt:
+    name: default-jdk
+    state: present
+
+- name: Download Apache Maven {{ maven_version }}
+  get_url:
+    url: "{{ maven_download_url }}"
+    dest: "{{ maven_archive }}"
+    mode: "0644"
+
+- name: Ensure /opt directory exists
+  file:
+    path: /opt
+    state: directory
+
+- name: Extract Maven into /opt
+  unarchive:
+    src: "{{ maven_archive }}"
+    dest: "/opt"
+    remote_src: yes
+    creates: "{{ maven_extract_dir }}"
+  notify:
+    - set maven symlink
+
+- name: Create Maven profile script
+  copy:
+    dest: "{{ maven_profile_script }}"
+    mode: "0755"
+    content: |
+       export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+       export M2_HOME={{ maven_symlink_dir }}
+       export MAVEN_HOME={{ maven_symlink_dir }}
+       export PATH=$M2_HOME/bin:$PATH
+
+- name: Verify Maven installation (non-fatal)
+  shell: "source {{ maven_profile_script }} && mvn -version"
+  args:
+    executable: /bin/bash
+  register: maven_version_check
+  changed_when: false
+  failed_when: false
+
+- name: Display Maven version
+  debug:
+    var: maven_version_check.stdout
+  when: maven_version_check.stdout != ""
