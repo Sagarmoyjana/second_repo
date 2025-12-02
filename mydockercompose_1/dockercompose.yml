@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  springbootapp:
+    image: sagarmoy/springboot:latest
+    container_name: springboot
+    ports:
+      - "8010:8080"
+    depends_on:
+      - mongo
+    restart: on-failure
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"   # only for debugging; remove in production
+    volumes:
+      - /home/ubuntu/mydockercompose_1/data:/data/db
+      - /home/ubuntu/mydockercompose_1/data-backup:/data/bkp
+    restart: always
+

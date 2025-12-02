@@ -1,0 +1,9 @@
+# Use official Apache HTTP Server image as base
+FROM httpd:2.4
+
+# Copy your website files into Apache's document root
+COPY ./website/ /usr/local/apache2/htdocs/
+
+# Expose HTTP port
+EXPOSE 80
+
