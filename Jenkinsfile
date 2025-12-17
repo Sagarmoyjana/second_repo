@@ -25,11 +25,12 @@ pipeline {
                 sh 'ansible-playbook ansible/deploy_php_app.yml -i ansible/hosts'
             }
         }
-    }
 
-    post {
-        failure {
-            script {
+        stage('Cleanup on Failure') {
+            when {
+                expression { currentBuild.currentResult == 'FAILURE' }
+            }
+            steps {
                 sh '''
                 ansible test -i ansible/hosts -m docker_container \
                   -a "name=phpapp state=absent" || true
