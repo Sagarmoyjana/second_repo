@@ -29,10 +29,12 @@ pipeline {
 
     post {
         failure {
-            sh '''
-            ansible test -i ansible/hosts -m docker_container \
-              -a "name=phpapp state=absent" || true
-            '''
+            node {
+                sh '''
+                ansible test -i ansible/hosts -m docker_container \
+                  -a "name=phpapp state=absent" || true
+                '''
+            }
         }
     }
 }
