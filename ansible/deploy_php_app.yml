@@ -1,0 +1,43 @@
+---
+- hosts: test
+  become: yes
+  vars:
+    app_name: phpapp
+    app_dir: /opt/phpapp
+    repo_url: https://github.com/Sagarmoyjana/second_repo.git
+    repo_branch: project_1
+
+  tasks:
+    - name: Remove existing container if present
+      docker_container:
+        name: "{{ app_name }}"
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove existing application directory if present
+      file:
+        path: "{{ app_dir }}"
+        state: absent
+
+    - name: Clone PHP Application from Github
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: "{{ repo_branch }}"
+        force: yes
+
+    - name: Build docker image from dockerfile
+      docker_image:
+        name: "{{ app_name }}"
+        source: build
+        build:
+          path: "{{ app_dir }}"
+
+    - name: Run PHP Docker container
+      docker_container:
+        name: "{{ app_name }}"
+        image: "{{ app_name }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "80:80"
