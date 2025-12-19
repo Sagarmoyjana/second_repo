@@ -1,3 +1,6 @@
 #!/bin/bash
-service httpd start
+set -e
 
+systemctl daemon-reload
+systemctl enable apache2
+systemctl restart apache2
