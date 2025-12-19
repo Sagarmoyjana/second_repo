@@ -12,7 +12,7 @@
 ~h
 # Command Line History (newest to oldest):
 :wq
-|2,0,1766156621,,"wq"
+|2,0,1766159714,,"wq"
 
 # Search String History (newest to oldest):
 
@@ -25,16 +25,34 @@
 # Registers:
 
 # File marks:
-'0  6  0  ~/scripts/install_dependencies
-|4,48,6,0,1766156621,"~/scripts/install_dependencies"
+'0  30  28  ~/index.html
+|4,48,30,28,1766159714,"~/index.html"
+'1  6  0  ~/scripts/install_dependencies
+|4,49,6,0,1766156621,"~/scripts/install_dependencies"
 
 # Jumplist (newest first):
+-'  30  28  ~/index.html
+|4,39,30,28,1766159714,"~/index.html"
+-'  1  0  ~/index.html
+|4,39,1,0,1766159515,"~/index.html"
+-'  6  0  ~/scripts/install_dependencies
+|4,39,6,0,1766156621,"~/scripts/install_dependencies"
 -'  6  0  ~/scripts/install_dependencies
 |4,39,6,0,1766156621,"~/scripts/install_dependencies"
 -'  1  0  ~/scripts/install_dependencies
 |4,39,1,0,1766156550,"~/scripts/install_dependencies"
+-'  1  0  ~/scripts/install_dependencies
+|4,39,1,0,1766156550,"~/scripts/install_dependencies"
 
 # History of marks within files (newest to oldest):
+
+> ~/index.html
+	*	1766159713	0
+	"	30	28
+	^	30	29
+	.	30	28
+	+	9	30
+	+	30	28
 
 > ~/scripts/install_dependencies
 	*	1766156611	0
