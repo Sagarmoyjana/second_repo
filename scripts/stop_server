@@ -1,6 +1,6 @@
 #!/bin/bash
-isExistApp = `pgrep httpd`
-if [[ -n  $isExistApp ]]; then
-    service httpd stop        
-fi
+set -e
 
+if systemctl is-active --quiet apache2; then
+    systemctl stop apache2
+fi
