@@ -1,10 +1,26 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Root stack to deploy networking, IAM, and ECR using nested CloudFormation stacks
+Description: Root stack to deploy full infrastructure and CI/CD
 
 Parameters:
   TemplateBucketName:
     Type: String
-    Description: S3 bucket name where CloudFormation templates are stored
+    Description: S3 bucket containing nested CloudFormation templates
+
+  GitHubOwner:
+    Type: String
+    Description: GitHub username or org
+
+  GitHubRepo:
+    Type: String
+    Description: GitHub repository name
+
+  GitHubBranch:
+    Type: String
+    Default: master
+
+  GitHubConnectionArn:
+    Type: String
+    Description: CodeStar GitHub connection ARN
 
 Resources:
 
@@ -22,3 +38,42 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.amazonaws.com/ecr.yml"
+
+  ECSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - NetworkStack
+      - IAMStack
+      - ECRStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.amazonaws.com/ecs.yml"
+      Parameters:
+        VpcId: !GetAtt NetworkStack.Outputs.VpcId
+        PublicSubnet1Id: !GetAtt NetworkStack.Outputs.PublicSubnet1Id
+        PublicSubnet2Id: !GetAtt NetworkStack.Outputs.PublicSubnet2Id
+        ECSTaskExecutionRoleArn: !GetAtt IAMStack.Outputs.ECSTaskExecutionRoleArn
+        ECRRepositoryUri: !GetAtt ECRStack.Outputs.ECRRepositoryUri
+
+  CodeBuildStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: IAMStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.amazonaws.com/codebuild.yml"
+      Parameters:
+        CodeBuildServiceRoleArn: !GetAtt IAMStack.Outputs.CodeBuildRoleArn
+
+  PipelineStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - ECSStack
+      - CodeBuildStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.amazonaws.com/pipeline.yml"
+      Parameters:
+        GitHubOwner: !Ref GitHubOwner
+        GitHubRepo: !Ref GitHubRepo
+        GitHubBranch: !Ref GitHubBranch
+        GitHubConnectionArn: !Ref GitHubConnectionArn
+        CodePipelineRoleArn: !GetAtt IAMStack.Outputs.CodePipelineRoleArn
+        CodeBuildProjectName: !GetAtt CodeBuildStack.Outputs.CodeBuildProjectName
+        ECSClusterName: !GetAtt ECSStack.Outputs.ECSClusterName
