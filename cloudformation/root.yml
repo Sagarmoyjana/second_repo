@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Root stack to deploy networking, IAM, and ECR using nested CloudFormation stacks
+
+Parameters:
+  TemplateBucketName:
+    Type: String
+    Description: S3 bucket name where CloudFormation templates are stored
+
+Resources:
+
+  NetworkStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.amazonaws.com/network.yml"
+
+  IAMStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.amazonaws.com/iam.yml"
+
+  ECRStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.amazonaws.com/ecr.yml"
