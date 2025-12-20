@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECS Cluster, Task Definition, and Staging Service for Node.js app
+
+Parameters:
+  VpcId:
+    Type: String
+    Description: VPC Id from network stack
+
+  PublicSubnet1Id:
+    Type: String
+    Description: First public subnet
+
+  PublicSubnet2Id:
+    Type: String
+    Description: Second public subnet
+
+  ECSTaskExecutionRoleArn:
+    Type: String
+    Description: ECS Task Execution Role ARN
+
+  ECRRepositoryUri:
+    Type: String
+    Description: ECR Repository URI
+
+Resources:
+
+  ########################
+  # ECS Cluster
+  ########################
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${AWS::StackName}-cluster"
+
+  ########################
+  # Security Group
+  ########################
+  ECSServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic to ECS tasks
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  ########################
+  # Task Definition
+  ########################
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: node-app-task
+      Cpu: "256"
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - EC2
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      ContainerDefinitions:
+        - Name: node-app-container
+          Image: !Sub "${ECRRepositoryUri}:latest"
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+              Protocol: tcp
+
+  ########################
+  # ECS Service (Staging)
+  ########################
+  ECSService:
+    Type: AWS::ECS::Service
+    DependsOn: ECSCluster
+    Properties:
+      ServiceName: node-app-staging
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: EC2
+      TaskDefinition: !Ref TaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref PublicSubnet1Id
+            - !Ref PublicSubnet2Id
+          SecurityGroups:
+            - !Ref ECSServiceSecurityGroup
+
+Outputs:
+  ECSClusterName:
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-ECSClusterName"
+
+  ECSServiceName:
+    Value: !Ref ECSService
+    Export:
+      Name: !Sub "${AWS::StackName}-ECSServiceName"

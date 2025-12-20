@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CI/CD pipeline using GitHub, CodeBuild, ECS, and manual approval
+
+Parameters:
+  PipelineName:
+    Type: String
+    Default: node-app-pipeline
+
+  GitHubOwner:
+    Type: String
+    Description: GitHub username or organization
+
+  GitHubRepo:
+    Type: String
+    Description: GitHub repository name
+
+  GitHubBranch:
+    Type: String
+    Default: master
+
+  GitHubConnectionArn:
+    Type: String
+    Description: CodeStar GitHub connection ARN
+
+  CodePipelineRoleArn:
+    Type: String
+    Description: IAM role ARN for CodePipeline
+
+  CodeBuildProjectName:
+    Type: String
+    Description: CodeBuild project name
+
+  ECSClusterName:
+    Type: String
+    Description: ECS cluster name
+
+  StagingServiceName:
+    Type: String
+    Default: node-app-staging
+
+  ProductionServiceName:
+    Type: String
+    Default: node-app-production
+
+Resources:
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Ref PipelineName
+      RoleArn: !Ref CodePipelineRoleArn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+
+      Stages:
+
+        # -------------------
+        # Source (GitHub)
+        # -------------------
+        - Name: Source
+          Actions:
+            - Name: GitHub_Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: "1"
+              Configuration:
+                ConnectionArn: !Ref GitHubConnectionArn
+                FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepo}"
+                BranchName: !Ref GitHubBranch
+                DetectChanges: true
+              OutputArtifacts:
+                - Name: SourceOutput
+              RunOrder: 1
+
+        # -------------------
+        # Build
+        # -----------------

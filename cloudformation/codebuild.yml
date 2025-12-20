@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CodeBuild project for building and pushing Docker images to ECR
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: node-app-build
+
+  CodeBuildServiceRoleArn:
+    Type: String
+    Description: IAM role ARN for CodeBuild
+
+Resources:
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref ProjectName
+      ServiceRole: !Ref CodeBuildServiceRoleArn
+
+      Artifacts:
+        Type: CODEPIPELINE
+
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
+
+      TimeoutInMinutes: 30
+
+Outputs:
+  C
